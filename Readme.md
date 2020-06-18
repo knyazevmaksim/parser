@@ -1,1 +1,1 @@
-﻿parser from LRC and XY prorocols
+﻿parser from LRC and XY protocols
