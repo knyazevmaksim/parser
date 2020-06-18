@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent, Parser * ptr)
+MainWindow::MainWindow(Parser * ptr, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow), p_parser{ptr}
 {
@@ -9,8 +9,9 @@ MainWindow::MainWindow(QWidget *parent, Parser * ptr)
 
     connect(ui->label,SIGNAL(sendFileNames(QList<QString>)), p_parser, SLOT(slotGetFileNames(QList<QString>)));
     connect(p_parser,SIGNAL(signalAddText(QByteArray,QColor)), SLOT(slotAddText(QByteArray, QColor)));
-    //ui->textBrowser->setStyleSheet()
+    connect(p_parser,SIGNAL(signalAddText(QString,QColor)), SLOT(slotAddText(QString, QColor)));
 }
+
 
 MainWindow::~MainWindow()
 {
@@ -19,8 +20,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::slotAddText(QByteArray text, QColor color)
 {
-    //ui->textBrowser->setStyleSheet(QString("color: %1").arg(color.name()));
-    //ui->textBrowser->setText(text);
+    ui->textBrowser->setTextColor(color);
+    ui->textBrowser->insertPlainText(text);
+    ui->textBrowser->insertPlainText("\n");
+}
+
+void MainWindow::slotAddText(QString text, QColor color)
+{
     ui->textBrowser->setTextColor(color);
     ui->textBrowser->insertPlainText(text);
     ui->textBrowser->insertPlainText("\n");

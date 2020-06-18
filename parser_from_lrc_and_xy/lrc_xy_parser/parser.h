@@ -15,6 +15,11 @@ enum BlockTypes
    SPB=0x00000003,//Simple Packet Block
    IDB=0x00000001//Interface Discription Block
 };
+enum byteOrders
+{
+    littleEndian=true,//от младшего байта к старшему слева направо
+    bigEndian=false //от старшего байта к младшему слева направо
+};
 
 
 class Parser: public QWidget
@@ -22,34 +27,31 @@ class Parser: public QWidget
     Q_OBJECT
 public:
     Parser(QWidget *parent = nullptr);
-    void readFile(QString &);
-    void analyzeData();
+    virtual ~Parser();
+
+    void readFile(QString &);//!
+
+    virtual void analyzeData()=0;//!
 
 
-
-     void testPrint();
-
-
-private:
-    QList<QString> fileNames;
-    qint64 charToInt(QByteArray);
-    bool littleEndian;
-    QByteArray getData(QByteArray);
-    int getSourcePort(QByteArray &);
-    std::multimap<QByteArray, QByteArray> dictionary;
-    QByteArray analyzeMessage(QByteArray &);
+protected:
+    QList<QByteArray> data;//!
+    QList<QString> fileNames;//!
 
 
-    QList<QByteArray> data;
+    qint64 charToInt(QByteArray, bool);//!
+    QByteArray getData(QByteArray);//оставить как есть оставить как есть если XY использует TCP
+    int getSourcePort(QByteArray &);//оставить как есть если XY использует TCP
 
-
-    QString testString {"C:/Users/yhwh/Desktop/LRC.pcapng"};
+    virtual const std::multimap<QByteArray, QByteArray> & create_dictionary()=0;//!
+    virtual QByteArray analyzeMessage(QByteArray &)=0;//!
 
 private slots:
-    void slotGetFileNames(QList<QString>);
+    void slotGetFileNames(QList<QString>);//!
 
 signals:
-    void signalAddText(QByteArray,QColor);
+    void signalAddText(QByteArray,QColor);//!
+    void signalAddText(QString,QColor);//!
 
 };
 

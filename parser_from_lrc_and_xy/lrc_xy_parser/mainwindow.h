@@ -17,7 +17,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr, Parser *ptr=nullptr);
+    MainWindow(Parser *ptr,QWidget *parent = nullptr);
     ~MainWindow();
 
 
@@ -27,6 +27,7 @@ private:
 
 private slots:
     void slotAddText(QByteArray, QColor);
+    void slotAddText(QString, QColor);
 
 };
 #endif // MAINWINDOW_H

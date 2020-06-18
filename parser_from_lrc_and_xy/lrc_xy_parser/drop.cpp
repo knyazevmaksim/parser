@@ -20,11 +20,10 @@ void Drop::dropEvent(QDropEvent * event)
     QString str{""};
     foreach(QUrl url, urlList)
     {
-        str+=url.toString()+"\n";
+        str+=url.toLocalFile()+"\n";
         names.push_back(url.toLocalFile());
     }
     setText("Dropped:\n"+str);
-
     //передача имен файлов в парсер
     emit sendFileNames(names);
 }
