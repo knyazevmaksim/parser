@@ -9,10 +9,9 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     LRC c;
-    LRC d;
 
     Parser &p=c;
-    //Parser &g=d;
+
 
 
     MainWindow w(&p,nullptr);

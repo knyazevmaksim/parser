@@ -6,6 +6,14 @@
 #include<QDebug>
 #include <map>
 
+enum types
+{
+    IPV6=0x86dd,
+    IPV4=0x0800,
+    ARP=0x0806,
+    IPX=0x8137,
+    TCP=6
+};
 
 enum BlockTypes
 {
@@ -29,29 +37,32 @@ public:
     Parser(QWidget *parent = nullptr);
     virtual ~Parser();
 
-    void readFile(QString &);//!
+    void readFile(QString &);
 
-    virtual void analyzeData()=0;//!
+    virtual void analyzeData()=0;
 
 
 protected:
-    QList<QByteArray> data;//!
-    QList<QString> fileNames;//!
+    QList<QByteArray> data;//
+    QList<QString> fileNames;//
 
 
-    qint64 charToInt(QByteArray, bool);//!
-    QByteArray getData(QByteArray);//оставить как есть оставить как есть если XY использует TCP
-    int getSourcePort(QByteArray &);//оставить как есть если XY использует TCP
+    qint64 charToInt(QByteArray, bool);//
+    QByteArray getData(QByteArray,int ipVersion);//оставить как есть оставить как есть если XY использует TCP
+    int getSourcePort(QByteArray &, int);//оставить как есть если XY использует TCP
+    int getDestinationPort(QByteArray &, int);//оставить как есть если XY использует TCP
+    void check(const int, QByteArray &);
+    int ipv6HeaderLength(QByteArray&);
 
-    virtual const std::multimap<QByteArray, QByteArray> & create_dictionary()=0;//!
-    virtual QByteArray analyzeMessage(QByteArray &)=0;//!
+    virtual const std::multimap<QByteArray, QByteArray> & create_dictionary()=0;//
+    virtual QByteArray analyzeMessage(QByteArray &)=0;//
 
 private slots:
-    void slotGetFileNames(QList<QString>);//!
+    void slotGetFileNames(QList<QString>);//
 
 signals:
-    void signalAddText(QByteArray,QColor);//!
-    void signalAddText(QString,QColor);//!
+    void signalAddText(QByteArray,QColor);//
+    void signalAddText(QString,QColor);//
 
 };
 

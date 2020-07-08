@@ -68,6 +68,7 @@ void Parser::readFile(QString & fileName)
                 dataSize=blockSize-16;
                 file.seek(position+8);
                 str=file.read(4);
+                //зачем это ветвление?
                 if(dataSize==charToInt(str,byteOrder))
                 {
                 //читаем данные
@@ -144,23 +145,225 @@ qint64 Parser::charToInt(QByteArray arr, bool byteOrder)
         }
     return j;
 }
-//функция получает данные из tcp сегмента
-QByteArray Parser::getData(QByteArray block)
+//принимает сырые данные с заголовками 3 сетевых слоев: ethernet, ip, tcp
+//возвращает данные из первого tcp сегмента из block
+//подходит только для использования с ipV4
+QByteArray Parser::getData(QByteArray block, int ipVersion)
 {
     QByteArray lenIp{""};
-    lenIp+=block.at(16);
-    lenIp+=block.at(17);
-    int intLenIp=charToInt(lenIp, bigEndian);
-    return block.mid(54,intLenIp-40);
+    int intLenIp{0};
+    if(ipVersion==IPV4)
+    {
+        lenIp+=block.at(16);
+        lenIp+=block.at(17);
+        intLenIp=charToInt(lenIp, bigEndian);
+        return block.mid(54,intLenIp-40);
+    }
+    else
+    {
+        lenIp+=block.at(18);
+        lenIp+=block.at(19);
+        intLenIp=charToInt(lenIp, bigEndian);
+        int ipv6Header=ipv6HeaderLength(block);
+        if(ipv6Header!=0)
+            return block.mid(14+ipv6Header+20-1, ipv6Header-intLenIp-20);
+        else
+            return "";
+    }
+
 }
-//получает порт отправителя tcp кадра, используется только для дифференциации отправителей
-int Parser::getSourcePort(QByteArray & block)
+//принимает сырые данные с заголовками 3 сетевых слоев: ethernet, ip, tcp
+//возвращает порт отправителя сдвинутого на offest байт tcp кадра, используется только для дифференциации отправителей
+int Parser::getSourcePort(QByteArray & block, int offset)
 {
     QByteArray port={""};
-    port.append(block[34]);
-    port.append(block[35]);
+    port.append(block[offset+34]);
+    port.append(block[offset+35]);
     int p=charToInt(port, bigEndian);
     return p;
+}
+
+//принимает сырые данные с заголовками 3 сетевых слоев: ethernet, ip, tcp
+//возвращает порт получателя сдвинутого на offest байт tcp кадра , используется только для дифференциации отправителей
+int Parser::getDestinationPort(QByteArray & block, int offset)
+{
+    QByteArray port={""};
+    port.append(block[offset+36]);
+    port.append(block[offset+37]);
+    int p=charToInt(port, bigEndian);
+    return p;
+}
+//ф-ия check проверяет dataCopy на наличие  LRC протокола и оставляет только подходящие
+//ethernet кадры. критерии:инкапсуляция tcp и порта=id=52116
+void Parser::check(const int id, QByteArray & data)
+{
+    QByteArray tmp{""};
+    int pos{0};//позиция первого байта проверяемого ethernet кадра
+    tmp+=data.at(12);
+    tmp+=data.at(13);
+    int ipVersion=charToInt(tmp, bigEndian);
+    tmp.clear();
+    int length{14};
+    while(pos!=data.size())
+    {
+        length=14;
+        switch (ipVersion)
+        {
+
+
+        case IPV4:
+        {
+            tmp+=data.at(pos+16);
+            tmp+=data.at(pos+17);
+            length+=charToInt(tmp, bigEndian);
+            tmp.clear();
+            //padding check
+            if(length<60/*&&data.mid(length, 60-length).count('\0')==60-length*/)
+            {
+                data.remove(length,60-length);
+            }
+            tmp+=data.at(pos+23);
+
+            int nextLayer=charToInt(tmp,bigEndian);
+            tmp.clear();
+            if(nextLayer==TCP)
+            {
+                int source{0}, destination{0};
+                source=getSourcePort(data, pos);
+                destination=getDestinationPort(data, pos);
+                if(source==id || destination==id)
+                {
+                    pos+=length;
+                }
+                else
+                {
+                    data.remove(pos,length);
+                }
+            }
+            else
+            {
+                data.remove(pos,length);
+            }
+            break;
+        }
+        case IPV6:
+        {
+            length+=40;
+
+            tmp+=data.at(pos+18);
+            tmp+=data.at(pos+19);
+            length+=charToInt(tmp, bigEndian);
+            tmp.clear();
+            //padding check
+            if(length<60/*&&data.mid(length, 60-length).count('\0')==60-length*/)
+            {
+
+                data.remove(length,60-length);
+
+            }
+
+            tmp+=data.at(pos+20);//next header
+
+            int nextLayer=charToInt(tmp,bigEndian);
+            tmp.clear();
+            int i{0};
+            if(nextLayer!=TCP)
+            {
+                int n=data.size();
+                //плохой цикл, много ненужных итераций в поисках nextHeader=tcp
+                while(nextLayer!=TCP && i<n-pos-54)
+                {
+                    tmp+=data.at(pos+14+i+40);
+                    i+=8;
+                    nextLayer=charToInt(tmp,bigEndian);
+                    tmp.clear();
+                }
+                i-=8;
+            }
+            if(nextLayer==TCP)
+            {
+                int source{0}, destination{0};
+                source=getSourcePort(data, pos+54-34+i);
+                destination=getDestinationPort(data, pos+54-36+i);
+                if(source==id || destination==id)
+                {
+                    pos+=length;
+                }
+                else
+                {
+                    data.remove(pos,length);
+                }
+            }
+            else
+            {
+                data.remove(pos,length);
+            }
+        break;
+        }
+        case ARP:
+        {
+            data.remove(pos,60);
+            break;
+        }
+        /*if(ipVersion==IPX)
+        {
+            не должно быть
+        }*/
+        default:
+            if(ipVersion<=1500)
+            {
+
+                data.remove(pos, ipVersion+14);
+            }
+            else
+                data.clear();
+        }
+    }
+}
+//возвращает сумму длин расширенного и фиксированного заголовка первого ipv6 инкапсулирующего tcp
+//принимает данные с заголовком ethernet
+int Parser::ipv6HeaderLength(QByteArray & data)
+{
+    int length{54};
+    QByteArray tmp{""};
+    tmp+=data.at(18);
+    tmp+=data.at(19);
+    length+=charToInt(tmp, bigEndian);
+    tmp.clear();
+    //padding check
+    if(length<60/*&&data.mid(length, 60-length).count('\0')==60-length*/)
+    {
+        data.remove(length,60-length);
+    }
+    tmp+=data.at(20);//next header
+    int nextLayer=charToInt(tmp,bigEndian);
+    int i{0};
+    if(nextLayer!=TCP)
+    {
+        while(nextLayer!=TCP && i<length-40)
+        {
+            tmp.clear();
+            tmp+=data.at(i+40);
+            i+=8;
+            nextLayer=charToInt(tmp,bigEndian);
+        }
+        if(i<length-40)
+        {
+            /*tmp.clear();
+            tmp+=data.at(pos+i+40);
+            nextLayer=charToInt(tmp,bigEndian);*/
+
+            return 40+i;
+        }
+        else
+            return 0;//tcp не найден
+    }
+    else
+    {
+        return 40;
+    }
+
+
 }
 
 

@@ -12,6 +12,9 @@ public:
 
     virtual void analyzeData() override;
 
+private:
+    const int id=52116;
+
 
 protected:
     virtual const std::multimap<QByteArray, QByteArray> & create_dictionary() override;
