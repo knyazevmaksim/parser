@@ -13,9 +13,10 @@ public:
 private:
 
 protected:
-    virtual void dragEnterEvent(QDragEnterEvent *);
-    virtual void dropEvent(QDropEvent *);
-
+    virtual void dragEnterEvent(QDragEnterEvent *) override;
+    virtual void dropEvent(QDropEvent *) override;
+    virtual void dragLeaveEvent(QDragLeaveEvent *) override;
+    virtual void dragMoveEvent(QDragMoveEvent *) override;
 signals:
     void sendFileNames(QList<QString>);
 

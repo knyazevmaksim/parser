@@ -13,6 +13,7 @@ Parser::~Parser()
 //
 void Parser::slotGetFileNames(QList<QString> a)
 {
+    emit signalClear();
     QColor black(0,0,0);
     QString tmp{""};
     fileNames<<a;//do we need to store filenames? its not necessary yet

@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QKeyEvent>
 #include <QDebug>
+#include<QFileDialog>
 #include "drop.h"
 #include "parser.h"
 
@@ -28,6 +29,11 @@ private:
 private slots:
     void slotAddText(QByteArray, QColor);
     void slotAddText(QString, QColor);
+    void slotBrowseFiles();
+    void slotClear();
+
+signals:
+    void sendFileNames(QList<QString>);
 
 };
 #endif // MAINWINDOW_H

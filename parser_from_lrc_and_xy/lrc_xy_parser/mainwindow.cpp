@@ -10,8 +10,15 @@ MainWindow::MainWindow(Parser * ptr, QWidget *parent)
     connect(ui->label,SIGNAL(sendFileNames(QList<QString>)), p_parser, SLOT(slotGetFileNames(QList<QString>)));
     connect(p_parser,SIGNAL(signalAddText(QByteArray,QColor)), SLOT(slotAddText(QByteArray, QColor)));
     connect(p_parser,SIGNAL(signalAddText(QString,QColor)), SLOT(slotAddText(QString, QColor)));
+    connect(ui->pushButton, SIGNAL(clicked()),SLOT(slotBrowseFiles()));
+    connect(this, SIGNAL(sendFileNames(QList<QString>)), p_parser, SLOT(slotGetFileNames(QList<QString>)));
+    connect(p_parser,SIGNAL(signalClear()), SLOT(slotClear()));
 }
 
+void MainWindow::slotClear()
+{
+    ui->textBrowser->clear();
+}
 
 MainWindow::~MainWindow()
 {
@@ -32,4 +39,8 @@ void MainWindow::slotAddText(QString text, QColor color)
     ui->textBrowser->insertPlainText("\n");
 }
 
-
+void MainWindow::slotBrowseFiles()
+{
+    QList<QString> d=QFileDialog::getOpenFileNames(0,"Open dialog","", "*.pcapng");
+    emit sendFileNames(d);
+}

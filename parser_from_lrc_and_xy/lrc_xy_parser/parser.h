@@ -63,6 +63,7 @@ private slots:
 signals:
     void signalAddText(QByteArray,QColor);//
     void signalAddText(QString,QColor);//
+    void signalClear();
 
 };
 

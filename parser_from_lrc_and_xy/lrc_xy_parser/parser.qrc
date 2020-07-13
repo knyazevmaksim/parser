@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>resources/drag.png</file>
+        <file>resources/dragndrop.png</file>
+        <file>resources/no.png</file>
+    </qresource>
+</RCC>
