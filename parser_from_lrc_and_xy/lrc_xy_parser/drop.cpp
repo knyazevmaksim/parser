@@ -3,7 +3,7 @@
 Drop::Drop(QWidget *parent) : QLabel("Drop area",parent)
 {
     setAcceptDrops(true);
-    this->setPixmap(QPixmap(":images/resources/dragndrop.png"));
+    this->setPixmap(QPixmap(":/images/dragndrop.png"));
     setToolTip("Drag&Drop area");
 }
 
@@ -15,7 +15,7 @@ void Drop::dragEnterEvent(QDragEnterEvent * event)
 void Drop::dragLeaveEvent(QDragLeaveEvent * event)
 {
 
-    this->setPixmap(QPixmap(":images/resources/dragndrop.png"));
+    this->setPixmap(QPixmap(":/images/dragndrop.png"));
 }
 
 
@@ -48,11 +48,11 @@ void Drop::dragMoveEvent(QDragMoveEvent * event)
     }
     if (flag && event->mimeData()->hasFormat("text/uri-list"))
     {
-        this->setPixmap(QPixmap (":images/resources/drag.png"));
+        this->setPixmap(QPixmap (":/images/drag.png"));
     }
     else
     {
-        this->setPixmap(QPixmap (":images/resources/no.png"));
+        this->setPixmap(QPixmap (":/images/no.png"));
         event->ignore();
     }
 }

@@ -1,7 +1,9 @@
 <RCC>
-    <qresource prefix="/images">
-        <file>resources/drag.png</file>
-        <file>resources/dragndrop.png</file>
-        <file>resources/no.png</file>
+<qresource prefix="/images">
+
+        <file alias="drag.png">resources/images/drag.jpg</file>
+        <file alias="dragndrop.png">resources/images/dragndrop.png</file>
+        <file alias="no.png">resources/images/no.png</file>
+        <file alias="main_icon.png">resources/images/main_icon.png</file>
     </qresource>
 </RCC>

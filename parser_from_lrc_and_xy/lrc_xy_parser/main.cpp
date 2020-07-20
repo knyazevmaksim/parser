@@ -12,8 +12,6 @@ int main(int argc, char *argv[])
 
     Parser &p=c;
 
-
-
     MainWindow w(&p,nullptr);
     w.show();
 

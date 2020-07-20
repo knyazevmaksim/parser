@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <QKeyEvent>
 #include <QDebug>
-#include<QFileDialog>
+#include <QFileDialog>
 #include "drop.h"
 #include "parser.h"
 
@@ -25,12 +25,15 @@ public:
 private:
     Ui::MainWindow *ui;
     Parser * p_parser;
+    QProgressBar * p_pb;
 
 private slots:
     void slotAddText(QByteArray, QColor);
     void slotAddText(QString, QColor);
     void slotBrowseFiles();
     void slotClear();
+    void slotSetProgressValue(int );
+    void slotShowProgressBar(QString);
 
 signals:
     void sendFileNames(QList<QString>);

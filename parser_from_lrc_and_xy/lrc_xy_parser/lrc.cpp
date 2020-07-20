@@ -13,14 +13,24 @@ LRC::~LRC()
 //разбиваем данные на сообщения LRC для анализа и анализируем их
 void LRC::analyzeData()
 {
+    emit signalShowProgressBar("parsing file "+fileNames[0]);
     QColor green(0,204,0), blue(24,38,176);
     QColor* color{&blue};
     int startPos{0}, endPos{0};
     QByteArray dataCopy{""},tmp{""}, firstEnd{""}, secondEnd{""};//2 порта
     QByteArray * cur{&firstEnd};
     int prevPort{0}, curPort{0};
+    const quint64 step=data.size()/100;
+    int count{0};
+    int progress{0};
     foreach(QByteArray arr, data)
     {
+        count++;
+        if((count-progress*step)>step)
+        {
+            progress++;
+            emit signalSetProgressValue(progress);
+        }
         dataCopy=arr;
         check(id, dataCopy);
         while(!dataCopy.isEmpty())
@@ -112,6 +122,7 @@ void LRC::analyzeData()
             prevPort=curPort;
         }
     }
+    emit signalSetProgressValue(100);
 }
 
 

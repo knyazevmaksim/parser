@@ -5,6 +5,8 @@
 #include <cmath>
 #include<QDebug>
 #include <map>
+#include <thread>
+#include <mutex>
 
 enum types
 {
@@ -45,7 +47,7 @@ public:
 protected:
     QList<QByteArray> data;//
     QList<QString> fileNames;//
-
+    std::mutex m;
 
     qint64 charToInt(QByteArray, bool);//
     QByteArray getData(QByteArray,int ipVersion);//оставить как есть оставить как есть если XY использует TCP
@@ -53,6 +55,7 @@ protected:
     int getDestinationPort(QByteArray &, int);//оставить как есть если XY использует TCP
     void check(const int, QByteArray &);
     int ipv6HeaderLength(QByteArray&);
+    void execute();
 
     virtual const std::multimap<QByteArray, QByteArray> & create_dictionary()=0;//
     virtual QByteArray analyzeMessage(QByteArray &)=0;//
@@ -64,6 +67,8 @@ signals:
     void signalAddText(QByteArray,QColor);//
     void signalAddText(QString,QColor);//
     void signalClear();
+    void signalShowProgressBar(QString);
+    void signalSetProgressValue(int );
 
 };
 

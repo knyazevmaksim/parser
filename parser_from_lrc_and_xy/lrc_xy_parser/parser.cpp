@@ -9,27 +9,44 @@ Parser::~Parser()
 {
 
 }
+void Parser::execute()
+{
+    m.lock();
+    emit signalClear();
+    QColor black(0,0,0);
+    QString tmp{""};
+
+
+    foreach(QString name, fileNames)
+    {
+        //std::thread p(&Parser::readFile, this, std::ref(name));
+        readFile(name);
+        tmp=name;
+        tmp.append(" :");
+        emit signalAddText(name,black);
+        //p.join();
+        //std::thread t(&Parser::analyzeData, this);
+        analyzeData();
+        //t.join();
+        fileNames.pop_front();
+        data.clear();
+    }
+    m.unlock();
+}
 
 //
 void Parser::slotGetFileNames(QList<QString> a)
 {
-    emit signalClear();
-    QColor black(0,0,0);
-    QString tmp{""};
+    //fileNames.append(a);
     fileNames<<a;//do we need to store filenames? its not necessary yet
-    foreach(QString name, fileNames)
-    {
-        readFile(name);
-        tmp=name.append(" :");
-        emit signalAddText(name,black);
-        analyzeData();
-        data.clear();
-    }
-    fileNames.clear();//
+    std::thread p(&Parser::execute, this);
+    p.detach();
+    //fileNames.clear();//
 }
 //считывание данных из файла. сохраняет в список все данные включая заголовки всех протоколов
 void Parser::readFile(QString & fileName)
 {
+    emit signalShowProgressBar("reading file "+fileName);
     bool byteOrder{bigEndian};
     QFile file(fileName);
     file.open(QIODevice::ReadOnly);
@@ -38,8 +55,15 @@ void Parser::readFile(QString & fileName)
     qint64 blockType{0};
     qint64 blockSize{0};
     int dataSize{0};
+    const quint64 step=file.size()/100;
+    int progress{0};
     while(!file.atEnd())
     {
+        if((position-progress*step)>step)
+        {
+            progress++;
+            emit signalSetProgressValue(progress);
+        }
         file.seek(position);
         str=file.read(4);
         blockType=charToInt(str,byteOrder);
@@ -115,6 +139,7 @@ void Parser::readFile(QString & fileName)
             break;
         }
     }
+    emit signalSetProgressValue(100);
     file.close();
 }
 //функция переводит массив символов char в шестнадцатиричной с.с. в десятичное число согласно представлению little endian
